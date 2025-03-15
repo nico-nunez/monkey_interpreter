@@ -1,3 +1,3 @@
-module github.com/nico-nunez/monkey_interpreter
+module monkey/interpreter
 
 go 1.24.0
