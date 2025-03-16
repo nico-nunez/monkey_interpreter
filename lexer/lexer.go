@@ -17,24 +17,6 @@ func New(input string) *Lexer {
 	return lex
 }
 
-func (lex *Lexer) readChar() {
-	if lex.readPosition >= len(lex.input) {
-		lex.ch = 0
-	} else {
-		lex.ch = lex.input[lex.readPosition]
-	}
-	lex.position = lex.readPosition
-	lex.readPosition += 1
-}
-
-func (lex *Lexer) peakChar() byte {
-	if lex.readPosition >= len(lex.input) {
-		return 0
-	} else {
-		return lex.input[lex.readPosition]
-	}
-}
-
 func (lex *Lexer) NextToken() token.Token {
 	var tok token.Token
 
@@ -43,9 +25,10 @@ func (lex *Lexer) NextToken() token.Token {
 	switch lex.ch {
 	case '=':
 		if lex.peakChar() == '=' {
+			ch := lex.ch
 			lex.readChar()
-			tok.Type = token.EQ
-			tok.Literal = "=="
+			tokLiteral := string(ch) + string(lex.ch)
+			tok = token.Token{Type: token.EQ, Literal: tokLiteral}
 		} else {
 			tok = newToken(token.ASSIGN, lex.ch)
 		}
@@ -63,9 +46,10 @@ func (lex *Lexer) NextToken() token.Token {
 		tok = newToken(token.MINUS, lex.ch)
 	case '!':
 		if lex.peakChar() == '=' {
+			ch := lex.ch
 			lex.readChar()
-			tok.Type = token.NOT_EQ
-			tok.Literal = "!="
+			tokLiteral := string(ch) + string(lex.ch)
+			tok = token.Token{Type: token.NOT_EQ, Literal: tokLiteral}
 		} else {
 			tok = newToken(token.BANG, lex.ch)
 		}
@@ -82,17 +66,15 @@ func (lex *Lexer) NextToken() token.Token {
 	case '}':
 		tok = newToken(token.RBRACE, lex.ch)
 	case 0:
-		tok.Literal = ""
-		tok.Type = token.EOF
+		tok = token.Token{Type: token.EOF, Literal: ""}
 	default:
 		if isLetter(lex.ch) {
-			tok.Literal = lex.readIdentifer()
-			tok.Type = token.LookupIdent(tok.Literal)
-			return tok
+			tokLiteral := lex.readIdentifer()
+			tokType := token.LookupIdent(tok.Literal)
+			return token.Token{Type: tokType, Literal: tokLiteral}
 		} else if isDigit(lex.ch) {
-			tok.Literal = lex.readNumber()
-			tok.Type = token.INT
-			return tok
+			tokLiteral := lex.readNumber()
+			return token.Token{Type: token.INT, Literal: tokLiteral}
 		} else {
 			tok = newToken(token.ILLEGAL, lex.ch)
 		}
@@ -100,6 +82,24 @@ func (lex *Lexer) NextToken() token.Token {
 
 	lex.readChar()
 	return tok
+}
+
+func (lex *Lexer) readChar() {
+	if lex.readPosition >= len(lex.input) {
+		lex.ch = 0
+	} else {
+		lex.ch = lex.input[lex.readPosition]
+	}
+	lex.position = lex.readPosition
+	lex.readPosition += 1
+}
+
+func (lex *Lexer) peakChar() byte {
+	if lex.readPosition >= len(lex.input) {
+		return 0
+	} else {
+		return lex.input[lex.readPosition]
+	}
 }
 
 func (lex *Lexer) readIdentifer() string {
